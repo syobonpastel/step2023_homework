@@ -2,7 +2,6 @@
 # 与えられた文字列の全ての文字を使わなくても良いように関数をアップグレードする
 
 import sys
-import copy
 
 # 1 point: a, e, h, i, n, o, r, s, t
 # 2 points: c, d, l, m, u
@@ -11,10 +10,6 @@ import copy
 
 score_table = [1, 3, 2, 2, 1, 3, 3, 1, 1, 4, 4,
                2, 2, 1, 1, 3, 4, 1, 1, 1, 2, 3, 3, 4, 3, 4]
-
-
-def sort_str(str):
-    return ''.join(sorted(str))
 
 
 def count_char(str):
@@ -33,69 +28,51 @@ def calulate_score(str):
     return score
 
 
-def anagram(str, sort_dictionary):
+def anagram(str, sorted_dictionary):
     # 入力文字列の一部を使って作れるAnagramを探す
     # input_str_sorted = sort_str(str)
     input_char_list = count_char(str)
-    anagram_list = []
-
-    for i in range(len(sort_dictionary)):
-        if sort_dictionary[i][0] > len(str):
-            break
+    for dictionary_word in sorted_dictionary:
+        if dictionary_word['length'] > len(str):
+            continue
+        for j in range(26):
+            if input_char_list[j] < dictionary_word['counted_char'][j]:
+                break
         else:
-            for j in range(26):
-                if input_char_list[j] < sort_dictionary[i][3][j]:
-                    break
-            else:
-                anagram_list.append(
-                    [sort_dictionary[i][2], sort_dictionary[i][3]])
+            return dictionary_word['word']
 
-    return anagram_list
+    return ""
 
 
-def highest_anagram_score(output_list):
-    # 最大スコアのAnagramを探す
-    max_score = 0
-    max_score_word = ''
-    for i in range(len(output_list)):
-        score = calulate_score(output_list[i][1])
-        if score > max_score:
-            max_score = score
-            max_score_word = output_list[i][0]
-
-    return max_score_word
-
-
-if __name__ == '__main__':
+def main():
     # 辞書ファイルの読み込み
     with open('words.txt', 'r') as f:
         dictionary = f.read().splitlines()
 
-    sort_dictionary = []
-    for i in range(len(dictionary)):
-        sort_dictionary.append(
-            [len(dictionary[i]), sort_str(dictionary[i]), dictionary[i], count_char(dictionary[i])])
+    sorted_dictionary = []
+    for dictionary_word in dictionary:
+        sorted_dictionary.append({
+            'length': len(dictionary_word),
+            'word': dictionary_word,
+            'counted_char': count_char(dictionary_word),
+            'score': calulate_score(count_char(dictionary_word))
+        })
 
-    sort_dictionary.sort()
+    sorted_dictionary.sort(key=lambda x: x['score'], reverse=True)
 
     # 入力文字列の読み込み
-    file = ["small", "medium", "large"]
-    # file = ["small"]
-    for k in range(len(file)):
-        input_str = []
-        with open(file[k]+'.txt', 'r') as f:
-            input_str = f.read().splitlines()
+    file_list = ["small", "medium", "large"]
+    # file_list = ["large"]
+    for file in file_list:
+        input_str_list = []
+        with open(file+'.txt', 'r') as f:
+            input_str_list = f.read().splitlines()
 
         # Anagramを探す
-        output_list = []
-        for str in input_str:
-            output = anagram(str, sort_dictionary)
-            if len(output) == 0:
-                output_list.append('')
-            else:
-                max_score_word = highest_anagram_score(output)
-                output_list.append(max_score_word)
+        with open('output_'+file+'.txt', 'w') as f:
+            for str in input_str_list:
+                f.write(anagram(str, sorted_dictionary)+'\n')
 
-        with open('output_'+file[k]+'.txt', 'w') as f:
-            for str in output_list:
-                f.write(str+'\n')
+
+if __name__ == '__main__':
+    main()
