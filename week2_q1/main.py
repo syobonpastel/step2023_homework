@@ -16,13 +16,18 @@ import time
 # |key|: string
 # Return value: a hash value
 
+prime_num_table = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31,
+                   37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113]
+prime_num_table_len = len(prime_num_table)
+
 
 def calculate_hash(key):
     assert type(key) == str
     # Note: This is not a good hash function. Do you see why?
     hash = 0
-    for i in key:
-        hash += ord(i)
+    for i, c in enumerate(key):
+        hash += prime_num_table[ord(c) % prime_num_table_len] * \
+            prime_num_table[i % prime_num_table_len]
     return hash
 
 
@@ -66,6 +71,10 @@ class HashTable:
     def put(self, key, value):
         assert type(key) == str
         self.check_size()  # Note: Don't remove this code.
+        if self.item_count >= self.bucket_size * 0.7:
+            self.rehash_for_extension()
+        elif self.item_count <= self.bucket_size * 0.3:
+            self.rehash_for_shrink()
         bucket_index = calculate_hash(key) % self.bucket_size
         item = self.buckets[bucket_index]
         while item:
@@ -104,7 +113,50 @@ class HashTable:
         # ------------------------#
         # Write your code here!  #
         # ------------------------#
-        pass
+        self.check_size()
+        bucket_index = calculate_hash(key) % self.bucket_size
+        item = self.buckets[bucket_index]
+        prev_item = None
+        while item:
+            if item.key == key:
+                self.item_count -= 1
+                if prev_item is None:
+                    self.buckets[bucket_index] = item.next
+                else:
+                    prev_item.next = item.next
+                del item
+                return True
+            prev_item = item
+            item = item.next
+        return False
+
+    def rehash_for_extension(self):
+        new_bucket_size = self.bucket_size * 2
+        new_buckets = [None] * new_bucket_size
+        for i in range(self.bucket_size):
+            item = self.buckets[i]
+            while item:
+                bucket_index = calculate_hash(item.key) % new_bucket_size
+                new_item = Item(item.key, item.value,
+                                new_buckets[bucket_index])
+                new_buckets[bucket_index] = new_item
+                item = item.next
+        self.bucket_size = new_bucket_size
+        self.buckets = new_buckets
+
+    def rehash_for_shrink(self):
+        new_bucket_size = self.bucket_size // 2
+        new_buckets = [None] * new_bucket_size
+        for i in range(self.bucket_size):
+            item = self.buckets[i]
+            while item:
+                bucket_index = calculate_hash(item.key) % new_bucket_size
+                new_item = Item(item.key, item.value,
+                                new_buckets[bucket_index])
+                new_buckets[bucket_index] = new_item
+                item = item.next
+        self.bucket_size = new_bucket_size
+        self.buckets = new_buckets
 
     # Return the total number of items in the hash table.
     def size(self):
