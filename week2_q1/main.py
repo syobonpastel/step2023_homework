@@ -124,7 +124,6 @@ class HashTable:
                     self.buckets[bucket_index] = item.next
                 else:
                     prev_item.next = item.next
-                del item
                 return True
             prev_item = item
             item = item.next
@@ -137,11 +136,10 @@ class HashTable:
             item = self.buckets[i]
             while item:
                 bucket_index = calculate_hash(item.key) % new_bucket_size
-                new_item = Item(item.key, item.value,
-                                new_buckets[bucket_index])
-                new_buckets[bucket_index] = new_item
-                item = item.next
-            del item
+                tmp_item_next = item.next
+                item.next = new_buckets[bucket_index]
+                new_buckets[bucket_index] = item
+                item = tmp_item_next
         self.bucket_size = new_bucket_size
         self.buckets = new_buckets
 
@@ -152,11 +150,10 @@ class HashTable:
             item = self.buckets[i]
             while item:
                 bucket_index = calculate_hash(item.key) % new_bucket_size
-                new_item = Item(item.key, item.value,
-                                new_buckets[bucket_index])
-                new_buckets[bucket_index] = new_item
-                item = item.next
-            del item
+                tmp_item_next = item.next
+                item.next = new_buckets[bucket_index]
+                new_buckets[bucket_index] = item
+                item = tmp_item_next
         self.bucket_size = new_bucket_size
         self.buckets = new_buckets
 
