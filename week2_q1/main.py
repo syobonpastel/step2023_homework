@@ -70,11 +70,9 @@ class HashTable:
     #               and the value is updated.
     def put(self, key, value):
         assert type(key) == str
-        self.check_size()  # Note: Don't remove this code.
         if self.item_count >= self.bucket_size * 0.7:
             self.rehash_for_extension()
-        elif self.item_count <= self.bucket_size * 0.3:
-            self.rehash_for_shrink()
+        self.check_size()  # Note: Don't remove this code.
         bucket_index = calculate_hash(key) % self.bucket_size
         item = self.buckets[bucket_index]
         while item:
@@ -113,6 +111,8 @@ class HashTable:
         # ------------------------#
         # Write your code here!  #
         # ------------------------#
+        if self.item_count <= self.bucket_size * 0.3 and self.bucket_size >= 100:
+            self.rehash_for_shrink()
         self.check_size()
         bucket_index = calculate_hash(key) % self.bucket_size
         item = self.buckets[bucket_index]
@@ -141,6 +141,7 @@ class HashTable:
                                 new_buckets[bucket_index])
                 new_buckets[bucket_index] = new_item
                 item = item.next
+            del item
         self.bucket_size = new_bucket_size
         self.buckets = new_buckets
 
@@ -155,6 +156,7 @@ class HashTable:
                                 new_buckets[bucket_index])
                 new_buckets[bucket_index] = new_item
                 item = item.next
+            del item
         self.bucket_size = new_bucket_size
         self.buckets = new_buckets
 
