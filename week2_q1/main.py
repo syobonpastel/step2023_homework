@@ -27,7 +27,7 @@ def calculate_hash(key):
     hash = 0
     for i, c in enumerate(key):
         hash += prime_num_table[ord(c) % prime_num_table_len] * \
-            prime_num_table[i % prime_num_table_len]
+            prime_num_table[i % prime_num_table_len] * ord(c)
     return hash
 
 

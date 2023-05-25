@@ -28,5 +28,5 @@ Performance tests passed!
 - 素数のテーブルを持たせ、文字と単語内での文字の位置に対してそれぞれ割り当てた素数を掛け合わせてハッシュ値を計算した。これにより、ハッシュ値の衝突を減らすことができる。
     ```python
     hash += prime_num_table[ord(c) % prime_num_table_len] * \
-                prime_num_table[i % prime_num_table_len]
+                prime_num_table[i % prime_num_table_len] * ord(c)
     ```
