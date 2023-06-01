@@ -37,7 +37,8 @@ def read_divide(line, index):
 
 
 def read_left_parenthesis(line, index, parenthesis_pair_index):
-    token = {'type': 'LEFT_PARENTHESIS', 'parenthesis_pair': parenthesis_pair_index}
+    token = {'type': 'LEFT_PARENTHESIS',
+             'parenthesis_pair': parenthesis_pair_index}
     return token, index + 1
 
 
@@ -64,7 +65,8 @@ def tokenize(line):
         elif line[index] == '/':
             (token, index) = read_divide(line, index)
         elif line[index] == '(':
-            (token, index) = read_left_parenthesis(line, index, parenthesis_depth_tmp)
+            (token, index) = read_left_parenthesis(
+                line, index, parenthesis_depth_tmp)
             parenthesis_depth_tmp += 1
             if parenthesis_depth_tmp > parenthesis_depth_max:
                 parenthesis_depth_max = parenthesis_depth_tmp
@@ -109,6 +111,7 @@ def evaluate_block(tokens):
         index += 1
     return answer
 
+
 def evaluate(tokens, parenthesis_depth_max):
     # 括弧の深さが最大のものから順に計算する
     for parenthesis_depth in range(parenthesis_depth_max, -1, -1):
@@ -125,7 +128,8 @@ def evaluate(tokens, parenthesis_depth_max):
                     print('Invalid: ")" is not found')
                     exit(1)
                 # 括弧内の式を計算する
-                answer = evaluate_block(tokens[index + 1: index_right_parenthesis])
+                answer = evaluate_block(
+                    tokens[index + 1: index_right_parenthesis])
                 # 括弧内の式を計算した結果をtokensに反映させる
                 tokens[index: index_right_parenthesis + 1] = [
                     {'type': 'NUMBER', 'number': answer}]
