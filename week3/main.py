@@ -26,6 +26,15 @@ def read_minus(line, index):
     return token, index + 1
 
 
+def read_multiply(line, index):
+    token = {'type': 'MULTIPLY'}
+    return token, index + 1
+
+def read_divide(line, index):
+    token = {'type': 'DIVIDE'}
+    return token, index + 1
+    
+
 def tokenize(line):
     tokens = []
     index = 0
@@ -36,6 +45,10 @@ def tokenize(line):
             (token, index) = read_plus(line, index)
         elif line[index] == '-':
             (token, index) = read_minus(line, index)
+        elif line[index] == '*':
+            (token, index) = read_multiply(line, index)
+        elif line[index] == '/':
+            (token, index) = read_divide(line, index)
         else:
             print('Invalid character found: ' + line[index])
             exit(1)
@@ -46,6 +59,17 @@ def tokenize(line):
 def evaluate(tokens):
     answer = 0
     tokens.insert(0, {'type': 'PLUS'}) # Insert a dummy '+' token
+    index = 1
+    while index < len(tokens):
+        # 掛け算と割り算を先に計算する
+        if tokens[index]['type'] == 'MULTIPLY':
+            tokens[index - 1]['number'] *= tokens[index + 1]['number']
+            del tokens[index : index + 2]
+        elif tokens[index]['type'] == 'DIVIDE':
+            tokens[index - 1]['number'] /= tokens[index + 1]['number']
+            del tokens[index : index + 2]
+        else:
+            index += 1
     index = 1
     while index < len(tokens):
         if tokens[index]['type'] == 'NUMBER':
@@ -62,6 +86,7 @@ def evaluate(tokens):
 
 def test(line):
     tokens = tokenize(line)
+    print(tokens)
     actual_answer = evaluate(tokens)
     expected_answer = eval(line)
     if abs(actual_answer - expected_answer) < 1e-8:
@@ -75,6 +100,8 @@ def run_test():
     print("==== Test started! ====")
     test("1+2")
     test("1.0+2.1-3")
+    test("1.0/2.0*3.0+4.0-5.0")
+    test("1.0+2.0/2.0+3.0")
     print("==== Test finished! ====\n")
 
 run_test()
