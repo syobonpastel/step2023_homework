@@ -41,3 +41,4 @@ round(1.55) => 2（四捨五入）
 ## 実装
 
 - [bb042dd](https://github.com/syobonpastel/step2023_homework/blob/bb042dd5c4e4b1e3f0d4ee69904b6a0147a3b94f/week3/main.py): 課題 3 で括弧を深い方から順に計算している
+- WIP: O(1) の計算量で括弧を計算する・課題 4
