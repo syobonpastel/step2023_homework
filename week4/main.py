@@ -88,7 +88,6 @@ class Wikipedia:
         visited = set()
         visited.add(start_id)
         
-        # id とそこまでの最短経路の対応を記録する
         # {id: [id, id, id, ...]}
         path = {}
         path[start_id] = [start_id]
