@@ -1,6 +1,7 @@
 import sys
 import collections
 
+
 class Wikipedia:
 
     # Initialize the graph of pages.
@@ -37,9 +38,9 @@ class Wikipedia:
         print("Finished reading %s" % links_file)
         print()
 
-
     # Find the longest titles. This is not related to a graph algorithm at all
     # though :)
+
     def find_longest_titles(self):
         titles = sorted(self.titles.values(), key=len, reverse=True)
         print("The longest titles are:")
@@ -52,8 +53,8 @@ class Wikipedia:
             index += 1
         print()
 
-
     # Find the most linked pages.
+
     def find_most_linked_pages(self):
         link_count = {}
         for id in self.titles.keys():
@@ -70,40 +71,74 @@ class Wikipedia:
                 print(self.titles[dst], link_count_max)
         print()
 
-
     # Find the shortest path.
     # |start|: The title of the start page.
     # |goal|: The title of the goal page.
-    def find_shortest_path(self, start, goal):
-        #------------------------#
-        # Write your code here!  #
-        #------------------------#
-        pass
 
+    def find_shortest_path(self, start, goal):
+        # ------------------------#
+        # Write your code here!  #
+        # ------------------------#
+        # BFS
+        start_id = [id for id, title in self.titles.items()
+                    if title == start][0]
+        goal_id = [id for id, title in self.titles.items() if title == goal][0]
+        id_queue = collections.deque()
+        id_queue.append(start_id)
+        visited = set()
+        visited.add(start_id)
+        
+        # id とそこまでの最短経路の対応を記録する
+        # {id: [id, id, id, ...]}
+        path = {}
+        path[start_id] = [start_id]
+        path_len = 0
+
+        while len(id_queue) > 0:
+            # print("count: ", path_len, "id_queue: ", id_queue, "visited: ", visited)
+            current_id = id_queue.pop()
+            path_len += 1
+            for dst in self.links[current_id]:
+                if dst not in visited:
+                    id_queue.append(dst)
+                    visited.add(dst)
+                    path[dst] = path[current_id] + [dst]
+                    if goal_id in visited:
+                        print("Path is found!", [self.titles[id] for id in path[goal_id]])
+                        return
+        print("Path is not found!")
+        return
 
     # Calculate the page ranks and print the most popular pages.
     def find_most_popular_pages(self):
-        #------------------------#
+        # ------------------------#
         # Write your code here!  #
-        #------------------------#
+        # ------------------------#
         pass
 
-
     # Do something more interesting!!
+
     def find_something_more_interesting(self):
-        #------------------------#
+        # ------------------------#
         # Write your code here!  #
-        #------------------------#
+        # ------------------------#
         pass
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("usage: %s pages_file links_file" % sys.argv[0])
-        exit(1)
+    # if len(sys.argv) != 3:
+    #     print("usage: %s pages_file links_file" % sys.argv[0])
+    #     exit(1)
 
-    wikipedia = Wikipedia(sys.argv[1], sys.argv[2])
-    wikipedia.find_longest_titles()
-    wikipedia.find_most_linked_pages()
-    wikipedia.find_shortest_path("渋谷", "パレートの法則")
+    # wikipedia = Wikipedia(sys.argv[1], sys.argv[2])
+    wikipedia = Wikipedia("./wikipedia_dataset/pages_small.txt",
+                          "./wikipedia_dataset/links_small.txt")
+    wikipedia.find_shortest_path("A", "B")
+    wikipedia.find_shortest_path("C", "A")
+    wikipedia.find_shortest_path("A", "C")
+    wikipedia.find_shortest_path("C", "D")
+    # wikipedia = Wikipedia("./wikipedia_dataset/pages_medium.txt", "./wikipedia_dataset/links_medium.txt")
+    # wikipedia.find_longest_titles()
+    # wikipedia.find_most_linked_pages()
+    # wikipedia.find_shortest_path("渋谷", "パレートの法則")
     wikipedia.find_most_popular_pages()
