@@ -137,36 +137,35 @@ class Wikipedia:
 
         while True:
             page_rank = init_page_rank(0)
+            distributed_score = 0
             for current_id in self.titles.keys():
                 if links_len[current_id] > 0:
-                    distributed_score = prev_page_rank[current_id] * 0.85 / links_len[current_id]
+                    distributed_link_score = prev_page_rank[current_id] * 0.85 / links_len[current_id]
                     for link in self.links[current_id]:
-                        page_rank[link] += distributed_score
-                    distributed_score = prev_page_rank[current_id] * 0.15 / page_count
-                    for receive_id in self.titles.keys():
-                        page_rank[receive_id] += distributed_score
+                        page_rank[link] += distributed_link_score
+                    distributed_score += prev_page_rank[current_id] * 0.15
                 else:
-                    distributed_score = prev_page_rank[current_id] / page_count
-                    for receive_id in self.titles.keys():
-                        page_rank[receive_id] += distributed_score
+                    distributed_score += prev_page_rank[current_id] 
+            for receive_id in self.titles.keys():
+                page_rank[receive_id] += distributed_score / page_count
 
             # print("page_rank: ", page_rank)
             assert int(page_rank_sum - sum(page_rank.values())) == 0
 
             # 収束判定
-            if calc_error(page_rank, prev_page_rank) < 0.1:
+            if calc_error(page_rank, prev_page_rank) < page_rank_sum / 1000:
                 break
 
             for id in self.titles.keys():
                 prev_page_rank[id] = page_rank[id]
 
             # show progress
-            print("page_rank_sum: ", page_rank_sum, "error: ", calc_error(page_rank, prev_page_rank))
+            # print("page_rank_sum: ", page_rank_sum, "error: ", calc_error(page_rank, prev_page_rank))
 
         # page_rankの大きい順にソート
         sorted_page_rank = sorted(page_rank.items(), key=lambda x: x[1], reverse=True)
         # 大きい方から10個表示
-        print("Page rank")
+        print("Top 10 Page rank")
         for i in range(10):
             print(self.titles[sorted_page_rank[i][0]], sorted_page_rank[i][1])
         return
