@@ -191,7 +191,7 @@ if __name__ == "__main__":
     # wikipedia.find_shortest_path("C", "A")
     # wikipedia.find_shortest_path("A", "C")
     # wikipedia.find_shortest_path("C", "D")
-    wikipedia = Wikipedia("./wikipedia_dataset/pages_medium.txt", "./wikipedia_dataset/links_medium.txt")
+    # wikipedia = Wikipedia("./wikipedia_dataset/pages_medium.txt", "./wikipedia_dataset/links_medium.txt")
     # wikipedia.find_longest_titles()
     # wikipedia.find_most_linked_pages()
     wikipedia.find_shortest_path("渋谷", "パレートの法則")
