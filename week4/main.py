@@ -87,7 +87,7 @@ class Wikipedia:
         id_queue.append(start_id)
         visited = set()
         visited.add(start_id)
-        
+
         # {id: [id, id, id, ...]}
         path = {}
         path[start_id] = [start_id]
@@ -103,7 +103,8 @@ class Wikipedia:
                     visited.add(dst)
                     path[dst] = path[current_id] + [dst]
                     if goal_id in visited:
-                        print("Path is found!", [self.titles[id] for id in path[goal_id]])
+                        print("Path is found!", [self.titles[id]
+                              for id in path[goal_id]])
                         return
         print("Path is not found!")
         return
@@ -113,7 +114,62 @@ class Wikipedia:
         # ------------------------#
         # Write your code here!  #
         # ------------------------#
-        pass
+
+        page_count = len(self.titles.keys())
+
+        def calc_error(page_rank, prev_page_rank):
+            error = 0
+            for id in self.titles.keys():
+                error += abs(page_rank[id] - prev_page_rank[id])
+            return error
+
+        def init_page_rank(i):
+            page_rank = {}
+            for id in self.titles.keys():
+                page_rank[id] = i
+            return page_rank
+
+        page_rank_sum = page_count * 1
+        prev_page_rank = init_page_rank(1)
+        links_len = {}
+        for id in self.titles.keys():
+            links_len[id] = len(self.links[id])
+
+        while True:
+            page_rank = init_page_rank(0)
+            for current_id in self.titles.keys():
+                if links_len[current_id] > 0:
+                    distributed_score = prev_page_rank[current_id] * 0.85 / links_len[current_id]
+                    for link in self.links[current_id]:
+                        page_rank[link] += distributed_score
+                    distributed_score = prev_page_rank[current_id] * 0.15 / page_count
+                    for receive_id in self.titles.keys():
+                        page_rank[receive_id] += distributed_score
+                else:
+                    distributed_score = prev_page_rank[current_id] / page_count
+                    for receive_id in self.titles.keys():
+                        page_rank[receive_id] += distributed_score
+
+            # print("page_rank: ", page_rank)
+            assert int(page_rank_sum - sum(page_rank.values())) == 0
+
+            # 収束判定
+            if calc_error(page_rank, prev_page_rank) < 0.1:
+                break
+
+            for id in self.titles.keys():
+                prev_page_rank[id] = page_rank[id]
+
+            # show progress
+            print("page_rank_sum: ", page_rank_sum, "error: ", calc_error(page_rank, prev_page_rank))
+
+        # page_rankの大きい順にソート
+        sorted_page_rank = sorted(page_rank.items(), key=lambda x: x[1], reverse=True)
+        # 大きい方から10個表示
+        print("Page rank")
+        for i in range(10):
+            print(self.titles[sorted_page_rank[i][0]], sorted_page_rank[i][1])
+        return
 
     # Do something more interesting!!
 
@@ -125,19 +181,18 @@ class Wikipedia:
 
 
 if __name__ == "__main__":
-    # if len(sys.argv) != 3:
-    #     print("usage: %s pages_file links_file" % sys.argv[0])
-    #     exit(1)
+    if len(sys.argv) != 3:
+        print("usage: %s pages_file links_file" % sys.argv[0])
+        exit(1)
 
-    # wikipedia = Wikipedia(sys.argv[1], sys.argv[2])
-    wikipedia = Wikipedia("./wikipedia_dataset/pages_small.txt",
-                          "./wikipedia_dataset/links_small.txt")
-    wikipedia.find_shortest_path("A", "B")
-    wikipedia.find_shortest_path("C", "A")
-    wikipedia.find_shortest_path("A", "C")
-    wikipedia.find_shortest_path("C", "D")
-    # wikipedia = Wikipedia("./wikipedia_dataset/pages_medium.txt", "./wikipedia_dataset/links_medium.txt")
+    wikipedia = Wikipedia(sys.argv[1], sys.argv[2])
+    # wikipedia = Wikipedia("./wikipedia_dataset/pages_small.txt", "./wikipedia_dataset/links_small.txt")
+    # wikipedia.find_shortest_path("A", "B")
+    # wikipedia.find_shortest_path("C", "A")
+    # wikipedia.find_shortest_path("A", "C")
+    # wikipedia.find_shortest_path("C", "D")
+    wikipedia = Wikipedia("./wikipedia_dataset/pages_medium.txt", "./wikipedia_dataset/links_medium.txt")
     # wikipedia.find_longest_titles()
     # wikipedia.find_most_linked_pages()
-    # wikipedia.find_shortest_path("渋谷", "パレートの法則")
+    wikipedia.find_shortest_path("渋谷", "パレートの法則")
     wikipedia.find_most_popular_pages()
