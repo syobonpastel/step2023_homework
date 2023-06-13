@@ -36,23 +36,19 @@ def read_divide(line, index):
     return token, index + 1
 
 
-def read_left_parenthesis(line, index, parenthesis_pair_index):
-    token = {'type': 'LEFT_PARENTHESIS',
-             'parenthesis_pair': parenthesis_pair_index}
+def read_left_parenthesis(line, index):
+    token = {'type': 'LEFT_PARENTHESIS'}
     return token, index + 1
 
 
-def read_right_parenthesis(line, index, parenthesis_pair_index):
-    token = {'type': 'RIGHT_PARENTHESIS',
-             'parenthesis_pair': parenthesis_pair_index}
+def read_right_parenthesis(line, index):
+    token = {'type': 'RIGHT_PARENTHESIS'}
     return token, index + 1
 
 
 def tokenize(line):
     tokens = []
     index = 0
-    parenthesis_depth_tmp = 0
-    parenthesis_depth_max = 0
     while index < len(line):
         if line[index].isdigit():
             (token, index) = read_number(line, index)
@@ -65,82 +61,89 @@ def tokenize(line):
         elif line[index] == '/':
             (token, index) = read_divide(line, index)
         elif line[index] == '(':
-            (token, index) = read_left_parenthesis(
-                line, index, parenthesis_depth_tmp)
-            parenthesis_depth_tmp += 1
-            if parenthesis_depth_tmp > parenthesis_depth_max:
-                parenthesis_depth_max = parenthesis_depth_tmp
+            (token, index) = read_left_parenthesis(line, index)
         elif line[index] == ')':
-            if parenthesis_depth_tmp == 0:
-                print('Invalid: ")" is not found')
-                exit(1)
-            parenthesis_depth_tmp -= 1
-            (token, index) = read_right_parenthesis(
-                line, index, parenthesis_depth_tmp)
+            (token, index) = read_right_parenthesis(line, index)
         else:
             print('Invalid character found: ' + line[index])
             exit(1)
         tokens.append(token)
-    return tokens, parenthesis_depth_max
+    return tokens
 
 
 def evaluate_block(tokens):
     answer = 0
-    tokens.insert(0, {'type': 'PLUS'})  # Insert a dummy '+' token
+    tokens.insert(0, {'type': 'PLUS'})  # Insert a dummy '+' tokens
     index = 1
-    while index < len(tokens):
+    tmp_tokens = []
+    while index < len(tokens) and tokens[index]['type'] != 'RIGHT_PARENTHESIS':
         # 掛け算と割り算を先に計算する
         if tokens[index]['type'] == 'MULTIPLY':
-            tokens[index - 1]['number'] *= tokens[index + 1]['number']
-            del tokens[index: index + 2]
+            if tokens[index + 1]['type'] == 'LEFT_PARENTHESIS':
+                # 括弧内の計算結果をtmp_tokensに追加する
+                tmp_calced, tmp_index = evaluate_block(tokens[index + 2:])
+                tmp_tokens.append(
+                    {'type': 'NUMBER', 'number': tmp_calced * tmp_tokens.pop()['number']})
+                index += tmp_index + 3
+                print("mal",tokens[index:])
+            else:
+                tmp_tokens.append({'type': 'NUMBER',
+                                   'number': tmp_tokens.pop()['number'] * tokens[index + 1]['number']})
+                index += 2
         elif tokens[index]['type'] == 'DIVIDE':
-            tokens[index - 1]['number'] /= tokens[index + 1]['number']
-            del tokens[index: index + 2]
+            if tokens[index + 1]['type'] == 'LEFT_PARENTHESIS':
+                # 括弧内の計算結果をtmp_tokensに追加する
+                tmp_calced, tmp_index = evaluate_block(tokens[index + 2:])
+                tmp_tokens.append(
+                    {'type': 'NUMBER', 'number': tmp_calced / tmp_tokens.pop()['number']})
+                index += tmp_index + 3
+                # print(tokens[index:])
+            else:
+                tmp_tokens.append({'type': 'NUMBER',
+                                   'number': tmp_tokens.pop()['number'] / tokens[index + 1]['number']})
+                index += 2
         else:
+            tmp_tokens.append(tokens[index])
             index += 1
     index = 1
-    while index < len(tokens):
-        if tokens[index]['type'] == 'NUMBER':
-            if tokens[index - 1]['type'] == 'PLUS':
-                answer += tokens[index]['number']
-            elif tokens[index - 1]['type'] == 'MINUS':
-                answer -= tokens[index]['number']
+    if tmp_tokens[0]['type'] != 'MINUS':
+        tmp_tokens.insert(0, {'type': 'PLUS'})
+    print(tmp_tokens)
+    while index < len(tmp_tokens) and tmp_tokens[index]['type'] != 'RIGHT_PARENTHESIS':
+        if tmp_tokens[index]['type'] == 'NUMBER':
+            if tmp_tokens[index - 1]['type'] == 'PLUS':
+                answer += tmp_tokens[index]['number']
+            elif tmp_tokens[index - 1]['type'] == 'MINUS':
+                answer -= tmp_tokens[index]['number']
             else:
                 print('Invalid syntax')
                 exit(1)
+        elif tmp_tokens[index]['type'] == 'LEFT_PARENTHESIS':
+            # print(tmp_tokens[index + 1:])
+            tmp_calced, tmp_index = evaluate_block(tmp_tokens[index + 1:])
+            tmp_token = {'type': 'NUMBER', 'number': tmp_calced}
+            if tmp_tokens[index - 1]['type'] == 'PLUS':
+                answer += tmp_token['number']
+            elif tmp_tokens[index - 1]['type'] == 'MINUS':
+                answer -= tmp_token['number']
+            else:
+                print('Invalid syntax')
+                exit(1)
+            index += tmp_index + 1
         index += 1
-    return answer
+    return answer, index
 
 
-def evaluate(tokens, parenthesis_depth_max):
-    # 括弧の深さが最大のものから順に計算する
-    for parenthesis_depth in range(parenthesis_depth_max, -1, -1):
-        index = 0
-        while index < len(tokens):
-            if tokens[index]['type'] == 'LEFT_PARENTHESIS' and tokens[index]['parenthesis_pair'] == parenthesis_depth:
-                # 括弧の対応する右括弧の位置を探す
-                index_right_parenthesis = index + 1
-                while index_right_parenthesis < len(tokens):
-                    if tokens[index_right_parenthesis]['type'] == 'RIGHT_PARENTHESIS' and tokens[index_right_parenthesis]['parenthesis_pair'] == parenthesis_depth:
-                        break
-                    index_right_parenthesis += 1
-                else:
-                    print('Invalid: ")" is not found')
-                    exit(1)
-                # 括弧内の式を計算する
-                answer = evaluate_block(
-                    tokens[index + 1: index_right_parenthesis])
-                # 括弧内の式を計算した結果をtokensに反映させる
-                tokens[index: index_right_parenthesis + 1] = [
-                    {'type': 'NUMBER', 'number': answer}]
-            index += 1
-    answer = evaluate_block(tokens)
+def evaluate(tokens):
+    # 括弧を見つけたら、括弧内を取り出して再帰的にevaluateする
+    # 括弧内の計算が終わったら、indexを括弧の終わりの次のindexに移動させる
+    answer, index = evaluate_block(tokens)
     return answer
 
 
 def test(line):
-    tokens, parenthesis_depth_max = tokenize(line)
-    actual_answer = evaluate(tokens, parenthesis_depth_max)
+    tokens = tokenize(line)
+    actual_answer = evaluate(tokens)
     expected_answer = eval(line)
     if abs(actual_answer - expected_answer) < 1e-8:
         print("PASS! (%s = %f)" % (line, expected_answer))
@@ -152,12 +155,16 @@ def test(line):
 # Add more tests to this function :)
 def run_test():
     print("==== Test started! ====")
+    test("-1")
     test("1+2")
     test("1.0+2.1-3")
+    test("-2.0*3.0")
     test("1.0/2.0*3.0+4.0-5.0")
     test("1.0+2.0/2.0+3.0")
     test("(1.0+2.0)/3.0*3.0")
     test("1.0+2.0*(3.0+4.0)")
+    test("(((1)))")
+    test("(1.0+2.0)*(3.0+4.0)")
     test("(3.0+4*(2-1))/5")
     test("1.0+2.0*(3.0+(2.0+1.0)*2)/9.0")
     test("(1+2)*1")
@@ -171,6 +178,6 @@ if __name__ == '__main__':
     while True:
         print('> ', end="")
         line = input()
-        tokens, parenthesis_depth_max = tokenize(line)
-        answer = evaluate(tokens, parenthesis_depth_max)
+        tokens = tokenize(line)
+        answer = evaluate(tokens)
         print("answer = %f\n" % answer)

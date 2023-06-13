@@ -35,6 +35,7 @@ def calc_total_distance(cities):
 
 def main():
     input_files = glob.glob('./google-step-tsp/input_[0-9].csv')
+    alpha = 0.8
     # input_files = input_files[5:]
     for input_file in input_files:
         cities = read_input_csv(input_file)
@@ -42,7 +43,7 @@ def main():
         total_distance = calc_total_distance(cities)
         cities_count = len(cities)
 
-        for _ in range(cities_count * 10):
+        for _ in range(cities_count * 20):
             # ランダムに2つ選んで入れ替える->スコアがよくなるなら採用
             i = random.randint(0, cities_count - 1)
             j = (i + random.randint(0, cities_count // 100)) % cities_count
@@ -52,6 +53,8 @@ def main():
                 cities[i], cities[j] = cities[j], cities[i]
                 new_total_distance = calc_total_distance(cities)
                 if new_total_distance < total_distance:
+                    total_distance = new_total_distance
+                elif random.random() < alpha**(new_total_distance - total_distance):
                     total_distance = new_total_distance
                 else:
                     cities[i], cities[j] = cities[j], cities[i]
