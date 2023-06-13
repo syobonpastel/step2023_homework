@@ -150,7 +150,7 @@ class Wikipedia:
                 page_rank[receive_id] += distributed_score / page_count
 
             # print("page_rank: ", page_rank)
-            assert int(page_rank_sum - sum(page_rank.values())) == 0
+            assert abs(page_rank_sum - sum(page_rank.values())) < 0.01
 
             # 収束判定
             if calc_error(page_rank, prev_page_rank) < page_rank_sum / 1000:

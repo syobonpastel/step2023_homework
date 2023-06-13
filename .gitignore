@@ -53,3 +53,10 @@ dkms.conf
 
 # Mac OS X
 .DS_Store
+
+# Wikipedia Large Scale Data
+links_large.txt
+pages_large.txt
+
+# tsp
+week5/google-step-tsp
