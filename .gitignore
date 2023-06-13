@@ -57,6 +57,8 @@ dkms.conf
 # Wikipedia Large Scale Data
 links_large.txt
 pages_large.txt
+links_medium.txt
+pages_medium.txt
 
 # tsp
 week5/google-step-tsp
