@@ -40,11 +40,12 @@ def main():
         cities = read_input_csv(input_file)
         cities = sorted(cities, key=lambda x: x['x'])
         total_distance = calc_total_distance(cities)
+        cities_count = len(cities)
 
-        for _ in range(len(cities) * 10):
+        for _ in range(cities_count * 10):
             # ランダムに2つ選んで入れ替える->スコアがよくなるなら採用
-            i = random.randint(0, len(cities) - 1)
-            j = random.randint(0, len(cities) - 1)
+            i = random.randint(0, cities_count - 1)
+            j = (i + random.randint(0, cities_count // 100)) % cities_count
             if i == j:
                 continue
             else:
