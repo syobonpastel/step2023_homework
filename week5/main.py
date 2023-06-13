@@ -38,9 +38,10 @@ def main():
     # input_files = input_files[5:]
     for input_file in input_files:
         cities = read_input_csv(input_file)
+        cities = sorted(cities, key=lambda x: x['x'])
         total_distance = calc_total_distance(cities)
 
-        for _ in range(10000):
+        for _ in range(len(cities) * 10):
             # ランダムに2つ選んで入れ替える->スコアがよくなるなら採用
             i = random.randint(0, len(cities) - 1)
             j = random.randint(0, len(cities) - 1)
