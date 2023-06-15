@@ -1,6 +1,7 @@
 import math
 import glob
 import random
+import copy
 
 
 def read_input_csv(file_name):
@@ -35,60 +36,60 @@ def calc_total_distance(cities):
 
 
 def main():
-    input_files = glob.glob('./google-step-tsp/input_[0-9].csv')
-    alpha = 0.5
+    input_files = glob.glob('./google-step-tsp/input_[4-6].csv')
+    # input_files = glob.glob('./google-step-tsp/input_3.csv')
+    alpha = 0.85
     # input_files = input_files[5:]
     for input_file in input_files:
         cities = read_input_csv(input_file)
 
-        # 初期解の生成
-        # 象限ごとに分けて、x座標が小さい順に並べる
-        x_min = min([city['x'] for city in cities])
-        x_max = max([city['x'] for city in cities])
-        y_min = min([city['y'] for city in cities])
-        y_max = max([city['y'] for city in cities])
+        best_total_distance = calc_total_distance(cities)
+        best_cities = copy.deepcopy(cities)
+        cities_count = len(cities)
 
-        city_groups = [[], [], [], []]
-        for city in cities:
-            if city['x'] < x_min + (x_max - x_min) / 2:
-                if city['y'] < y_min + (y_max - y_min) / 2:
-                    city_groups[0].append(city)
+        for _ in range (10):
+            # 初期解の生成
+            # 貪欲法
+            current_city = random.choice(cities)
+            unvisited_cities = copy.deepcopy(cities)
+            unvisited_cities.remove(current_city)
+            visited_cities = [current_city]
+            while len(unvisited_cities) > 0:
+                next_city = min(unvisited_cities, key=lambda city: calc_distance(
+                    current_city, city))
+                unvisited_cities.remove(next_city)
+                visited_cities.append(next_city)
+                current_city = next_city
+
+            total_distance = calc_total_distance(visited_cities)
+            assert cities_count == len(visited_cities)
+
+            for _ in range(cities_count * 1000):
+                # ランダムに2つ選んで入れ替える->スコアがよくなるなら採用/スコアが良くならない場合でも確率的に採用
+                i = random.randint(0, cities_count - 1)
+                j = random.randint(0, cities_count - 1)
+                if i == j:
+                    continue
                 else:
-                    city_groups[1].append(city)
-            else:
-                if city['y'] < y_min + (y_max - y_min) / 2:
-                    city_groups[2].append(city)
-                else:
-                    city_groups[3].append(city)
+                    visited_cities[i], visited_cities[j] = visited_cities[j], visited_cities[i]
+                    new_total_distance = calc_total_distance(visited_cities)
+                    if new_total_distance < total_distance:
+                        total_distance = new_total_distance
+                    elif random.random() < alpha**((new_total_distance - total_distance)):
+                        total_distance = new_total_distance
+                        # print('accept')
+                    else:
+                        visited_cities[i], visited_cities[j] = visited_cities[j], visited_cities[i]
+                        # print('reject')
 
-        cities = []
-        for i, city_group in enumerate(city_groups):
-            city_group.sort(key=lambda city: city['x'])
-            if i % 2 == 1:
-                city_group.reverse()
-            cities += city_group
+            if total_distance < best_total_distance:
+                best_total_distance = total_distance
+                best_cities = copy.deepcopy(visited_cities)
 
-        total_distance=calc_total_distance(cities)
-        cities_count=len(cities)
-
-        for _ in range(cities_count * 100):
-            # ランダムに2つ選んで入れ替える->スコアがよくなるなら採用/スコアが良くならない場合でも確率的に採用
-            i=random.randint(0, cities_count - 1)
-            j=random.randint(0, cities_count - 1)
-            if i == j:
-                continue
-            else:
-                cities[i], cities[j]=cities[j], cities[i]
-                new_total_distance=calc_total_distance(cities)
-                if new_total_distance < total_distance:
-                    total_distance=new_total_distance
-                elif random.random() < alpha**(new_total_distance - total_distance):
-                    total_distance=new_total_distance
-                else:
-                    cities[i], cities[j]=cities[j], cities[i]
+        assert cities_count == len(best_cities)
 
         write_output_csv('./google-step-tsp/output_' +
-                         input_file[len('./google-step-tsp/input_'):], cities)
+                         input_file[len('./google-step-tsp/input_'):], best_cities)
 
 
 if __name__ == '__main__':
