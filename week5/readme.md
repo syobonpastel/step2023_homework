@@ -2,7 +2,7 @@
 
 ## 課題
 
-[tsp challenge](https://github.com/hayatoito/google-step-tsp)
+[tsp challenge](https://github.com/hayatoito/google-step-tsp) の実装
 
 ## 実行方法
 

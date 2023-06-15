@@ -36,7 +36,7 @@ def calc_total_distance(cities):
 
 
 def main():
-    input_files = glob.glob('./google-step-tsp/input_[5-6].csv')
+    input_files = glob.glob('./google-step-tsp/input_[0-6].csv')
     # input_files = glob.glob('./google-step-tsp/input_3.csv')
     alpha = 0.85
     # input_files = input_files[5:]
@@ -47,7 +47,7 @@ def main():
         best_cities = copy.deepcopy(cities)
         cities_count = len(cities)
 
-        for _ in range (10):
+        for _ in range (30):
             # 初期解の生成
             # 貪欲法
             current_city = random.choice(cities)
@@ -64,7 +64,7 @@ def main():
             total_distance = calc_total_distance(visited_cities)
             assert cities_count == len(visited_cities)
 
-            for _ in range(cities_count * 1000):
+            for k in range(min(cities_count * 1000, 100000)):
                 # ランダムに2つ選んで入れ替える->スコアがよくなるなら採用/スコアが良くならない場合でも確率的に採用
                 i = random.randint(0, cities_count - 1)
                 j = random.randint(0, cities_count - 1)
@@ -81,6 +81,9 @@ def main():
                     else:
                         visited_cities[i], visited_cities[j] = visited_cities[j], visited_cities[i]
                         # print('reject')
+                
+                if k % 10000 == 0:
+                    print(k, total_distance)
 
             if total_distance < best_total_distance:
                 best_total_distance = total_distance
