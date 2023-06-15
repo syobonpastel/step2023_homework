@@ -36,7 +36,7 @@ def calc_total_distance(cities):
 
 
 def main():
-    input_files = glob.glob('./google-step-tsp/input_[4-6].csv')
+    input_files = glob.glob('./google-step-tsp/input_[5-6].csv')
     # input_files = glob.glob('./google-step-tsp/input_3.csv')
     alpha = 0.85
     # input_files = input_files[5:]
@@ -90,6 +90,7 @@ def main():
 
         write_output_csv('./google-step-tsp/output_' +
                          input_file[len('./google-step-tsp/input_'):], best_cities)
+        print(input_file, best_total_distance)
 
 
 if __name__ == '__main__':
