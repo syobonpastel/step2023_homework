@@ -85,22 +85,6 @@ int main()
         int cities_num = read_cities(cities, globbuf.gl_pathv[i]);
         printf("%s: %d\n", globbuf.gl_pathv[i], cities_num);
 
-        // 2 都市間の距離を計算
-        // double distances[cities_num][cities_num];
-        // for (int i = 0; i < cities_num; i++) {
-        //     for (int j = i; j < cities_num; j++) {
-        //         distances[i][j] = calc_distance(&cities[i], &cities[j]);
-        //         distances[j][i] = distances[i][j];
-        //     }
-        // }
-
-        // for (int i = 0; i < cities_num; i++) {
-        //     for (int j = 0; j < cities_num; j++) {
-        //         printf("%lf ", distances[i][j]);
-        //     }
-        //     printf("\n");
-        // }
-
         int best_route[cities_num];
         double best_score = 1e100;
 
@@ -170,7 +154,7 @@ int main()
 
                 // double new_score = calc_total_distance(cities, route, cities_num);
 
-                if (score_diff < 0 || pow(alpha, score_diff) > (double)rand() / RAND_MAX) {
+                if (score_diff < 0 || pow(alpha, score_diff*i) > (double)rand() / RAND_MAX) {
                     swap(i, j, route);
                 }
 
