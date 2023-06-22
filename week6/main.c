@@ -7,7 +7,6 @@
 #include <time.h>
 
 typedef struct {
-    int index;
     double x;
     double y;
 } city;
@@ -22,10 +21,9 @@ int read_cities(city* cities, char* filename)
 
     char buf[256];
     fgets(buf, sizeof(buf), fp);  // 1行目は読み飛ばす
-    int i;
+    int i = 0;
     while (fgets(buf, sizeof(buf), fp) != NULL) {
         sscanf(buf, "%lf,%lf", &cities[i].x, &cities[i].y);
-        cities[i].index = i;
         i++;
     }
     fclose(fp);
@@ -81,7 +79,7 @@ int main()
     glob_t globbuf;
     const double alpha = 0.7;
 
-    int ret = glob("../week5/google-step-tsp/input_[6-6].csv", 0, NULL, &globbuf);
+    int ret = glob("../week5/google-step-tsp/input_[6-7].csv", 0, NULL, &globbuf);
     for (int i = 0; i < globbuf.gl_pathc; i++) {
         city cities[10000];
         int cities_num = read_cities(cities, globbuf.gl_pathv[i]);
@@ -147,27 +145,41 @@ int main()
             // 2-opt
             // スコアが改善しない場合も確率的に採用
             int count = 0;
-            for (int k = 0; k < 50000000; k++) {
+            for (int k = 0; k < 1000000000; k++) {
                 int i = rand() % cities_num;
                 int j = rand() % cities_num;
                 if (i == j) {
                     continue;
                 }
 
-                swap(i, j, route);
-                double new_score = calc_total_distance(cities, route, cities_num);
+                // printf("%d %d\n", i, j);
 
-                if (new_score < score || pow(alpha, (new_score - score)) > (double)rand() / RAND_MAX) {
-                    score = new_score;
-                } else {
+                // i < j になるようにする
+                if (i > j) {
+                    int tmp = i;
+                    i = j;
+                    j = tmp;
+                }
+
+                // score_diff: i-1 と j の間の距離 + i と j+1 の間の距離 - i-1 と i の間の距離 - j と j+1 の間の距離
+                double score_diff = 0;
+                score_diff += calc_distance(&cities[route[(i - 1 + cities_num) % cities_num]], &cities[route[j]]);
+                score_diff += calc_distance(&cities[route[i]], &cities[route[(j + 1) % cities_num]]);
+                score_diff -= calc_distance(&cities[route[(i - 1 + cities_num) % cities_num]], &cities[route[i]]);
+                score_diff -= calc_distance(&cities[route[j]], &cities[route[(j + 1) % cities_num]]);
+
+                // double new_score = calc_total_distance(cities, route, cities_num);
+
+                if (score_diff < 0 || pow(alpha, score_diff) > (double)rand() / RAND_MAX) {
                     swap(i, j, route);
                 }
 
-                if (k % 500000 == 0 && k > 0) {
-                    printf("%d: %lf\n", k, score);
+                if (k % 10000000 == 0 && k > 0) {
+                    printf("%d: %lf\n", k, calc_total_distance(cities, route, cities_num));
                 }
             }
 
+            score = calc_total_distance(cities, route, cities_num);
             if (score < best_score) {
                 best_score = score;
                 for (int i = 0; i < cities_num; i++) {
