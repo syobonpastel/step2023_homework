@@ -77,7 +77,7 @@ void swap(int i, int j, int* route)
 int main()
 {
     glob_t globbuf;
-    const double alpha = 0.7;
+    const double alpha = 0.3;
 
     int ret = glob("../week5/google-step-tsp/input_[6-7].csv", 0, NULL, &globbuf);
     for (int i = 0; i < globbuf.gl_pathc; i++) {
@@ -104,7 +104,7 @@ int main()
         int best_route[cities_num];
         double best_score = 1e100;
 
-        for (int l = 0; l < 1; l++) {
+        for (int l = 0; l < 10; l++) {
 
             // 貪欲法
             int route[cities_num];
@@ -138,9 +138,9 @@ int main()
             printf("greedy: %lf\n", score);
 
             // greedy の score が best_score*1.1 よりも大きければ採用しない
-            if (score > best_score * 1.1) {
-                continue;
-            }
+            // if (score > best_score * 1.1) {
+            //     continue;
+            // }
 
             // 2-opt
             // スコアが改善しない場合も確率的に採用
@@ -174,7 +174,7 @@ int main()
                     swap(i, j, route);
                 }
 
-                if (k % 10000000 == 0 && k > 0) {
+                if (k % 50000000 == 0 && k > 0) {
                     printf("%d: %lf\n", k, calc_total_distance(cities, route, cities_num));
                 }
             }
