@@ -77,7 +77,7 @@ void swap(int i, int j, int* route)
 int main()
 {
     glob_t globbuf;
-    const double alpha = 0.3;
+    const double alpha = 0.4;
 
     int ret = glob("../week5/google-step-tsp/input_[6-7].csv", 0, NULL, &globbuf);
     for (int i = 0; i < globbuf.gl_pathc; i++) {
@@ -154,7 +154,7 @@ int main()
 
                 // double new_score = calc_total_distance(cities, route, cities_num);
 
-                if (score_diff < 0 || pow(alpha, score_diff*i) > (double)rand() / RAND_MAX) {
+                if (score_diff < 0 || pow(alpha, score_diff) > (double)rand() / RAND_MAX) {
                     swap(i, j, route);
                 }
 
@@ -170,7 +170,7 @@ int main()
                     best_route[i] = route[i];
                 }
             }
-        }
+        }        
 
         // 結果を出力
         char output_filename[256];
